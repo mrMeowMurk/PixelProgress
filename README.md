@@ -1,12 +1,16 @@
 # 🎮 PixelProgress
 
-<div align="center">
-  <img src="preview.gif" alt="PixelProgress Preview" width="800"/>
-</div>
+![PixelProgress](https://img.shields.io/badge/Quote-Generator-7f5af0?style=for-the-badge&logo=react)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)
 
 ## 📝 Описание
 
 PixelProgress - это современное веб-приложение в стиле ретро-игр, которое позволяет отслеживать прогресс в играх Steam. Приложение выполнено в пиксельном стиле, что создает уникальную атмосферу и ностальгическое настроение. PixelProgress предоставляет удобный интерфейс для мониторинга достижений, времени в игре и общей статистики, сохраняя при этом эстетику классических видеоигр.
+
+<div align="center">
+  <img src="preview.gif" alt="PixelProgress Preview" width="800"/>
+</div>
 
 ## ✨ Основные возможности
 
