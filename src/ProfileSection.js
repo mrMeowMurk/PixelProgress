@@ -37,12 +37,58 @@ const ProfileSection = ({ playerInfo }) => {
     const years = Math.floor(totalMonths / 12);
     const months = totalMonths % 12;
     
-    return `${years} лет ${months} месяцев`;
+    let result = '';
+    if (years === 0) {
+      if (months === 0) return 'Меньше месяца';
+      if (months === 1) return '1 месяц';
+      if (months < 5) return `${months} месяца`;
+      return `${months} месяцев`;
+    }
+    
+    if (years === 1) {
+      result = '1 год';
+    } else if (years < 5) {
+      result = `${years} года`;
+    } else {
+      result = `${years} лет`;
+    }
+    
+    if (months > 0) {
+      if (months === 1) {
+        result += ' 1 месяц';
+      } else if (months < 5) {
+        result += ` ${months} месяца`;
+      } else {
+        result += ` ${months} месяцев`;
+      }
+    }
+    
+    return result;
+  };
+
+  const getAccountRank = (timestamp) => {
+    if (!timestamp) return { title: 'Неизвестно', icon: '❓' };
+
+    const now = new Date();
+    const then = new Date(timestamp * 1000);
+    const diffYears = now.getFullYear() - then.getFullYear();
+    const diffMonths = now.getMonth() - then.getMonth();
+    const totalMonths = diffYears * 12 + diffMonths;
+    
+    if (totalMonths < 1) return { title: 'Новичок', icon: '🌱' };
+    if (totalMonths < 6) return { title: 'Начинающий', icon: '🎮' };
+    if (totalMonths < 12) return { title: 'Опытный игрок', icon: '🎯' };
+    if (diffYears < 3) return { title: 'Энтузиаст Steam', icon: '⭐' };
+    if (diffYears < 5) return { title: 'Ветеран Steam', icon: '🏆' };
+    if (diffYears < 8) return { title: 'Мастер Steam', icon: '👑' };
+    if (diffYears < 10) return { title: 'Легенда Steam', icon: '🌟' };
+    return { title: 'Древний страж Steam', icon: '🏰' };
   };
 
   if (!playerInfo) return null;
 
   const profileAge = getTimeSince(playerInfo.timecreated);
+  const accountRank = getAccountRank(playerInfo.timecreated);
 
   return (
     <div className="profile-section">
@@ -82,8 +128,8 @@ const ProfileSection = ({ playerInfo }) => {
           <div className="profile-badges">
             {profileAge && (
               <div className="profile-badge">
-                <span className="badge-icon">📅</span>
-                <span className="badge-text">Ветеран Steam</span>
+                <span className="badge-icon">{accountRank.icon}</span>
+                <span className="badge-text">{accountRank.title}</span>
                 <span className="badge-subtext">{profileAge}</span>
               </div>
             )}

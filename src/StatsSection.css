@@ -151,4 +151,16 @@
   .stats-card h3 {
     font-size: 0.8em;
   }
+}
+
+.no-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: #8a8a8a;
+  font-size: 1.1em;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 } 

@@ -135,16 +135,24 @@ app.get('/api/game/:appId', async (req, res) => {
   try {
     console.log(`Fetching game details for App ID: ${req.params.appId}`);
     const response = await axios.get(
-      `${STEAM_API_BASE_URL}/ISteamApps/GetAppDetails/v2/?key=${STEAM_API_KEY}&appid=${req.params.appId}`
+      `https://store.steampowered.com/api/appdetails?appids=${req.params.appId}`,
+      {
+        headers: {
+          'Accept-Language': 'en-US,en;q=0.9',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      }
     );
     
-    if (!response.data) {
+    const data = response.data[req.params.appId];
+    if (!data || !data.success) {
       return res.status(404).json({ error: 'Game details not found.' });
     }
 
-    console.log('Game details response:', response.data);
-    res.json(response.data);
+    console.log('Game details response:', data);
+    res.json({ response: { gameDetails: data.data } });
   } catch (error) {
+    console.error('Error fetching game details:', error.message);
     handleSteamError(error, res);
   }
 });

@@ -172,13 +172,24 @@ function App() {
       // Получаем дополнительную информацию о каждой игре
       const gamesWithDetails = await Promise.all(
         ownedGames.map(async (game) => {
-          const [achievements, gameDetails] = await Promise.all([
-            steamApi.getGameAchievements(finalSteamId, game.appid),
-            steamApi.getGameDetails(game.appid)
-          ]);
+          let achievements;
+          try {
+            achievements = await steamApi.getGameAchievements(finalSteamId, game.appid);
+          } catch (error) {
+            achievements = { achievements: [] };
+          }
+
+          let gameDetails;
+          try {
+            gameDetails = await steamApi.getGameDetails(game.appid);
+          } catch (error) {
+            console.log(`Could not fetch details for game ${game.name}:`, error.message);
+            gameDetails = null;
+          }
           
           const completedAchievements = achievements.filter(a => a.achieved).length;
-          const progress = Math.round((completedAchievements / achievements.length) * 100) || 0;
+          const progress = achievements.length > 0 ? 
+            Math.round((completedAchievements / achievements.length) * 100) : 0;
           const status = progress === 100 ? 'completed' : 'in-progress';
           
           return {
@@ -192,7 +203,7 @@ function App() {
             playTime: formatPlayTime(game.playtime_forever || 0),
             playtime_forever: game.playtime_forever || 0,
             status: status,
-            genres: gameDetails?.genres || [],
+            genres: gameDetails?.genres?.map(genre => genre.description) || [],
             release_date: gameDetails?.release_date || null,
             metacritic: gameDetails?.metacritic || null,
             rtime_last_played: game.rtime_last_played
