@@ -99,5 +99,24 @@ export const steamApi = {
       console.error('Error fetching player info:', error);
       throw error;
     }
+  },
+
+  // Получение детальной информации об игре
+  async getGameDetails(appId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/game/${appId}`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch game details');
+      }
+
+      const data = await response.json();
+      console.log('Game details data received:', data);
+      return data.response?.gameDetails || null;
+    } catch (error) {
+      console.error('Error fetching game details:', error);
+      return null;
+    }
   }
 }; 

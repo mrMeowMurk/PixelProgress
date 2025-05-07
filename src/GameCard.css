@@ -1,5 +1,5 @@
 .game-card {
-  background-color: #2a475e;
+  background-color: var(--bg-secondary);
   border-radius: 10px;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -11,14 +11,35 @@
 .game-card:hover {
   box-shadow: 0 8px 32px rgba(102,192,244,0.25);
   transform: translateY(-6px);
-  border-color: #66c0f4;
+  border-color: var(--text-secondary);
+}
+
+/* Режим сетки */
+.games-container:not(.list) .game-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.games-container:not(.list) .game-image {
+  width: 100%;
+  height: 215px;
+}
+
+/* Режим списка */
+.games-container.list .game-card {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  margin-bottom: 20px;
+}
+
+.games-container.list .game-image {
+  height: 100%;
+  min-height: 112px;
 }
 
 .game-image {
-  width: 100%;
-  height: 215px;
   overflow: hidden;
-  background: #1b2838;
+  background: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,7 +50,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-bottom: 2px solid #171a21;
+  border-bottom: 2px solid var(--border-color);
   transition: transform 0.5s ease;
 }
 
@@ -69,11 +90,14 @@
 .game-info {
   padding: 20px;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .game-info h2 {
-  margin: 0 0 15px 0;
-  color: #66c0f4;
+  margin: 0;
+  color: var(--text-secondary);
   font-size: 1.5rem;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -82,13 +106,12 @@
 }
 
 .progress-bar {
-  background-color: #1b2838;
+  background-color: var(--bg-primary);
   height: 22px;
   border-radius: 12px;
-  margin: 10px 0 18px 0;
   position: relative;
   overflow: hidden;
-  border: 2px solid #66c0f4;
+  border: 2px solid var(--text-secondary);
   transition: all 0.3s ease;
 }
 
@@ -143,12 +166,14 @@
 }
 
 .game-details {
-  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .game-details p {
-  margin: 8px 0;
-  color: #c7d5e0;
+  margin: 0;
+  color: var(--text-primary);
   font-size: 1rem;
   display: flex;
   align-items: center;
@@ -156,18 +181,17 @@
 }
 
 .play-time {
-  color: #66c0f4 !important;
+  color: var(--text-secondary) !important;
   font-weight: bold;
 }
 
 .status-select {
   width: 100%;
   padding: 10px;
-  margin-top: 12px;
-  background-color: #1b2838;
+  background-color: var(--bg-primary);
   border: 2px solid;
   border-radius: 8px;
-  color: white;
+  color: var(--text-primary);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -176,10 +200,21 @@
 }
 
 .status-select:hover {
-  background-color: #233c51;
+  background-color: var(--hover-bg);
 }
 
 .status-select option {
-  background-color: #2a475e;
+  background-color: var(--bg-secondary);
   padding: 10px;
+}
+
+/* Адаптивный дизайн для режима списка */
+@media (max-width: 600px) {
+  .games-container.list .game-card {
+    grid-template-columns: 1fr;
+  }
+
+  .games-container.list .game-image {
+    height: 215px;
+  }
 } 

@@ -130,6 +130,25 @@ app.get('/api/recent/:steamId', async (req, res) => {
   }
 });
 
+// Прокси для получения информации об игре
+app.get('/api/game/:appId', async (req, res) => {
+  try {
+    console.log(`Fetching game details for App ID: ${req.params.appId}`);
+    const response = await axios.get(
+      `${STEAM_API_BASE_URL}/ISteamApps/GetAppDetails/v2/?key=${STEAM_API_KEY}&appid=${req.params.appId}`
+    );
+    
+    if (!response.data) {
+      return res.status(404).json({ error: 'Game details not found.' });
+    }
+
+    console.log('Game details response:', response.data);
+    res.json(response.data);
+  } catch (error) {
+    handleSteamError(error, res);
+  }
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
