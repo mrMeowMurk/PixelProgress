@@ -1,13 +1,43 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+require('dotenv').config();
+
 const app = express();
 
-const STEAM_API_KEY = "B8F2171A1393F44FD6C3491949BE15EF";
+// Проверяем наличие API ключа
+const STEAM_API_KEY = process.env.STEAM_API_KEY;
+if (!STEAM_API_KEY) {
+  console.error('ERROR: STEAM_API_KEY not found in environment variables!');
+  console.error('Please create a .env file with your Steam API key.');
+  process.exit(1);
+}
+
 const STEAM_API_BASE_URL = 'https://api.steampowered.com';
 
 app.use(cors());
 app.use(express.json());
+
+// Обработчик ошибок Steam API
+const handleSteamError = (error, res) => {
+  console.error('Steam API Error:', error.response?.data || error.message);
+  
+  if (error.response?.status === 403) {
+    return res.status(403).json({
+      error: 'Access Denied. This might be because: 1) The profile is private 2) Invalid Steam ID 3) Steam API key is invalid'
+    });
+  }
+  
+  if (error.response?.status === 404) {
+    return res.status(404).json({
+      error: 'Profile not found. Please check the Steam ID'
+    });
+  }
+
+  return res.status(500).json({
+    error: 'Failed to fetch data from Steam API. Please try again later.'
+  });
+};
 
 // Конвертация vanity URL в Steam ID
 app.get('/api/resolve/:vanityUrl', async (req, res) => {
@@ -21,11 +51,10 @@ app.get('/api/resolve/:vanityUrl', async (req, res) => {
     if (response.data.response.success === 1) {
       res.json({ steamId: response.data.response.steamid });
     } else {
-      res.status(404).json({ error: 'Steam ID not found' });
+      res.status(404).json({ error: 'Steam ID not found. Please check the vanity URL.' });
     }
   } catch (error) {
-    console.error('Error resolving vanity URL:', error.response?.data || error.message);
-    res.status(500).json({ error: error.message });
+    handleSteamError(error, res);
   }
 });
 
@@ -36,11 +65,15 @@ app.get('/api/player/:steamId', async (req, res) => {
     const response = await axios.get(
       `${STEAM_API_BASE_URL}/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${req.params.steamId}`
     );
+    
+    if (!response.data.response.players.length) {
+      return res.status(404).json({ error: 'Player not found. Please check the Steam ID.' });
+    }
+
     console.log('Player info response:', response.data);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching player info:', error.response?.data || error.message);
-    res.status(500).json({ error: error.message });
+    handleSteamError(error, res);
   }
 });
 
@@ -51,11 +84,17 @@ app.get('/api/games/:steamId', async (req, res) => {
     const response = await axios.get(
       `${STEAM_API_BASE_URL}/IPlayerService/GetOwnedGames/v1/?key=${STEAM_API_KEY}&steamid=${req.params.steamId}&include_appinfo=true&include_played_free_games=true`
     );
+
+    if (!response.data.response?.game_count) {
+      return res.status(403).json({ 
+        error: 'No games found. This might be because the profile is private or the game list is hidden.' 
+      });
+    }
+
     console.log('Games response:', response.data);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching games:', error.response?.data || error.message);
-    res.status(500).json({ error: error.message });
+    handleSteamError(error, res);
   }
 });
 
@@ -69,8 +108,11 @@ app.get('/api/achievements/:steamId/:appId', async (req, res) => {
     console.log('Achievements response:', response.data);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching achievements:', error.response?.data || error.message);
-    res.status(500).json({ error: error.message });
+    // Для достижений особая обработка - некоторые игры могут не иметь достижений
+    if (error.response?.status === 400) {
+      return res.json({ playerstats: { achievements: [] } });
+    }
+    handleSteamError(error, res);
   }
 });
 
@@ -84,8 +126,7 @@ app.get('/api/recent/:steamId', async (req, res) => {
     console.log('Recent games response:', response.data);
     res.json(response.data);
   } catch (error) {
-    console.error('Error fetching recent games:', error.response?.data || error.message);
-    res.status(500).json({ error: error.message });
+    handleSteamError(error, res);
   }
 });
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import { steamApi } from './services/steamApi';
+import GameCard from './GameCard';
 
 function App() {
   const [steamId, setSteamId] = useState('');
@@ -16,20 +17,43 @@ function App() {
     return `${hours.toLocaleString()} hours`;
   };
 
+  // Извлечение Steam ID или vanity URL из разных форматов ввода
+  const extractSteamIdentifier = (input) => {
+    // Если это числовой Steam ID
+    if (/^\d+$/.test(input)) {
+      return input;
+    }
+
+    // Если это полный URL профиля
+    const urlMatch = input.match(/steamcommunity\.com\/(id|profiles)\/([^\/]+)/);
+    if (urlMatch) {
+      // Если это прямой Steam ID в URL
+      if (urlMatch[1] === 'profiles') {
+        return urlMatch[2];
+      }
+      // Если это vanity URL
+      return urlMatch[2];
+    }
+
+    // Если это просто vanity URL без полного адреса
+    return input;
+  };
+
   const handleSteamIdSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
     try {
-      let finalSteamId = steamId;
+      const identifier = extractSteamIdentifier(steamId);
+      let finalSteamId = identifier;
 
-      // Проверяем, является ли введенное значение vanity URL
-      if (!steamId.match(/^\d+$/)) {
+      // Если это не числовой ID, пробуем получить Steam ID через vanity URL
+      if (!identifier.match(/^\d+$/)) {
         try {
-          finalSteamId = await steamApi.resolveVanityUrl(steamId);
+          finalSteamId = await steamApi.resolveVanityUrl(identifier);
         } catch (error) {
-          throw new Error('Invalid Steam ID or vanity URL');
+          throw new Error('Invalid Steam ID or profile URL. Please check your input and try again.');
         }
       }
 
@@ -61,7 +85,7 @@ function App() {
             achievements: completedAchievements,
             totalAchievements: achievements.length,
             lastPlayed: recentGameIds.has(game.appid) ? 'Recently' : 'Not recently',
-            image: `https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg`,
+            image: `https://cdn.akamai.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
             playTime: formatPlayTime(game.playtime_forever),
             status: status
           };
@@ -70,7 +94,7 @@ function App() {
 
       setGames(gamesWithDetails);
     } catch (err) {
-      setError('Failed to fetch games. Please check your Steam ID or vanity URL and try again.');
+      setError(err.message || 'Failed to fetch games. Please check your Steam ID or profile URL and try again.');
       console.error('Error:', err);
     } finally {
       setLoading(false);
@@ -89,6 +113,14 @@ function App() {
     return matchesFilter && matchesSearch;
   });
 
+  // Быстрые фильтры
+  const filterButtons = [
+    { value: 'all', label: 'All' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'in-progress', label: 'In Progress' },
+    { value: 'want-to-play', label: 'Want to Play' },
+  ];
+
   return (
     <div className="App">
       <header className="App-header">
@@ -104,7 +136,7 @@ function App() {
             type="text"
             value={steamId}
             onChange={(e) => setSteamId(e.target.value)}
-            placeholder="Enter your Steam ID or vanity URL"
+            placeholder="Enter Steam ID, profile URL, or custom URL"
             className="steam-id-input"
           />
           <button type="submit" className="submit-button" disabled={loading}>
@@ -124,54 +156,24 @@ function App() {
             placeholder="Search games..."
             className="search-input"
           />
-          <select 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Games</option>
-            <option value="completed">Completed</option>
-            <option value="in-progress">In Progress</option>
-            <option value="want-to-play">Want to Play</option>
-          </select>
+          <div className="filter-buttons">
+            {filterButtons.map(btn => (
+              <button
+                key={btn.value}
+                className={`filter-btn${filter === btn.value ? ' active' : ''}`}
+                onClick={() => setFilter(btn.value)}
+                type="button"
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       <main className="games-container">
         {filteredGames.map(game => (
-          <div key={game.id} className="game-card">
-            <div className="game-image">
-              <img src={game.image} alt={game.title} />
-            </div>
-            <div className="game-info">
-              <h2>{game.title}</h2>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill" 
-                  style={{ width: `${game.progress}%` }}
-                ></div>
-                <span>{game.progress}% Complete</span>
-              </div>
-              <div className="game-details">
-                <p className="play-time">Play Time: {game.playTime}</p>
-                <p className="achievements">
-                  Achievements: {game.achievements}/{game.totalAchievements}
-                </p>
-                <p className="last-played">Last played: {game.lastPlayed}</p>
-              </div>
-              <div className="game-status">
-                <select
-                  value={game.status}
-                  onChange={(e) => updateGameStatus(game.id, e.target.value)}
-                  className="status-select"
-                >
-                  <option value="completed">Completed</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="want-to-play">Want to Play</option>
-                </select>
-              </div>
-            </div>
-          </div>
+          <GameCard key={game.id} game={game} onStatusChange={updateGameStatus} />
         ))}
       </main>
     </div>
