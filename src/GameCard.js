@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './GameCard.css';
 
-function GameCard({ game, onStatusChange }) {
+function GameCard({ game, onStatusChange, displayMode }) {
   const [imageError, setImageError] = useState(false);
 
   const handleImageError = () => {
@@ -17,8 +17,13 @@ function GameCard({ game, onStatusChange }) {
     }
   };
 
+  const progressStyle = {
+    width: `${game.progress}%`,
+    backgroundColor: game.progress === 100 ? '#4CAF50' : '#66c0f4'
+  };
+
   return (
-    <div className="game-card">
+    <div className={`game-card ${displayMode === 'list' ? 'list-mode' : ''}`}>
       <div className="game-image">
         <img 
           src={imageError ? 
@@ -35,16 +40,12 @@ function GameCard({ game, onStatusChange }) {
         </div>
       </div>
       <div className="game-info">
-        <h2>{game.title}</h2>
+        <h3>{game.title}</h3>
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
-            style={{ 
-              width: `${game.progress}%`,
-              backgroundColor: getStatusColor(game.status)
-            }}
-          />
-          <span>{game.progress}% Complete</span>
+          <div className="progress-bar-fill" style={progressStyle}></div>
+          <div className="progress-bar-text" data-text={`${game.progress}%`}>
+            {game.progress}%
+          </div>
         </div>
         <div className="game-details">
           <p className="play-time">⌛ {game.playTime}</p>
@@ -57,8 +58,9 @@ function GameCard({ game, onStatusChange }) {
           onChange={(e) => onStatusChange(game.id, e.target.value)}
           style={{ borderColor: getStatusColor(game.status) }}
         >
-          <option value="completed">Completed</option>
+          <option value="not-started">Not Started</option>
           <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
           <option value="want-to-play">Want to Play</option>
         </select>
       </div>

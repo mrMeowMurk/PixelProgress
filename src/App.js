@@ -3,6 +3,7 @@ import './App.css';
 import { steamApi } from './services/steamApi';
 import GameCard from './GameCard';
 import StatsSection from './StatsSection';
+import ProfileSection from './ProfileSection';
 
 function App() {
   const [steamId, setSteamId] = useState('');
@@ -241,70 +242,7 @@ function App() {
           </button>
         </div>
         <h1>Steam Game Progress Tracker</h1>
-        {playerInfo && (
-          <div className="player-info">
-            <img src={playerInfo.avatarfull} alt="Player Avatar" className="player-avatar" />
-            <div className="player-details">
-              <h2>{playerInfo.personaname}</h2>
-              <div className="player-meta">
-                <p>Profile Status: {playerInfo.personastate === 1 ? 'Online' : 'Offline'}</p>
-                <p>Profile URL: <a href={playerInfo.profileurl} target="_blank" rel="noopener noreferrer">Steam Profile</a></p>
-              </div>
-              <div className="account-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Games</span>
-                  <span className="stat-value">{accountStats.totalGames}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Total Playtime</span>
-                  <span className="stat-value">
-                    {accountStats.totalPlaytime > 0 ? formatPlayTime(accountStats.totalPlaytime) : 'No playtime recorded'}
-                  </span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Completed</span>
-                  <span className="stat-value">{accountStats.completedGames}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Completion Rate</span>
-                  <span className="stat-value">{accountStats.averageCompletion}%</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Achievement Rate</span>
-                  <span className="stat-value">{accountStats.achievementRate}%</span>
-                </div>
-              </div>
-              {accountStats.totalPlaytime > 0 && (
-                <div className="additional-stats">
-                  {accountStats.mostPlayedGame && (
-                    <div className="stat-section">
-                      <h3>Most Played Game</h3>
-                      <p>{accountStats.mostPlayedGame.name} ({accountStats.mostPlayedGame.playtime})</p>
-                    </div>
-                  )}
-                  {accountStats.recentlyPlayed.length > 0 && (
-                    <div className="stat-section">
-                      <h3>Recently Played</h3>
-                      <ul className="recent-games-list">
-                        {accountStats.recentlyPlayed.map(game => (
-                          <li key={game.name}>
-                            {game.name} - {game.lastPlayed}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  <div className="stat-section">
-                    <h3>Library Stats</h3>
-                    <p>Average Playtime: {formatPlayTime(accountStats.averagePlaytime)}</p>
-                    <p>Unplayed Games: {accountStats.gamesNotPlayed}</p>
-                    <p>Total Achievements: {accountStats.totalAchievements} / {accountStats.totalAchievementsAvailable}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        
         <form onSubmit={handleSteamIdSubmit} className="steam-id-form">
           <input
             type="text"
@@ -314,50 +252,54 @@ function App() {
             className="steam-id-input"
           />
           <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? 'Loading...' : 'Load Games'}
+            {loading ? 'Loading...' : 'Load Profile'}
           </button>
         </form>
       </header>
 
       {error && <div className="error-message">{error}</div>}
 
-      {games.length > 0 && (
-        <div className="filters">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search games..."
-            className="search-input"
-          />
-          <div className="filter-buttons">
-            {filterButtons.map(btn => (
-              <button
-                key={btn.value}
-                className={`filter-btn${filter === btn.value ? ' active' : ''}`}
-                onClick={() => setFilter(btn.value)}
-                type="button"
-              >
-                {btn.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      {playerInfo && (
+        <ProfileSection playerInfo={playerInfo} />
       )}
 
-      <main className={`games-container ${displayMode}`}>
-        {filteredGames.map(game => (
-          <GameCard 
-            key={game.id} 
-            game={game} 
-            onStatusChange={updateGameStatus}
-            displayMode={displayMode}
-          />
-        ))}
-      </main>
-
       {games.length > 0 && (
-        <StatsSection games={games} accountStats={accountStats} />
+        <>
+          <StatsSection games={games} accountStats={accountStats} />
+          
+          <div className="filters">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search games..."
+              className="search-input"
+            />
+            <div className="filter-buttons">
+              {filterButtons.map(btn => (
+                <button
+                  key={btn.value}
+                  className={`filter-btn${filter === btn.value ? ' active' : ''}`}
+                  onClick={() => setFilter(btn.value)}
+                  type="button"
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <main className={`games-container ${displayMode}`}>
+            {filteredGames.map(game => (
+              <GameCard 
+                key={game.id} 
+                game={game} 
+                onStatusChange={updateGameStatus}
+                displayMode={displayMode}
+              />
+            ))}
+          </main>
+        </>
       )}
     </div>
   );

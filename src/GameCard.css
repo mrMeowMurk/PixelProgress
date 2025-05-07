@@ -9,6 +9,9 @@
   position: relative;
   box-shadow: var(--pixel-shadow);
   image-rendering: pixelated;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .game-card::before {
@@ -63,7 +66,7 @@
 }
 
 .progress-bar {
-  height: 20px;
+  height: 24px;
   background-color: #000;
   background-image: repeating-linear-gradient(
     45deg,
@@ -107,6 +110,32 @@
     rgba(255,255,255,0.1) 5px,
     rgba(255,255,255,0.1) 10px
   );
+}
+
+.progress-bar-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.7em;
+  text-shadow: 2px 2px 0 #000;
+  z-index: 2;
+  white-space: nowrap;
+  font-family: 'Press Start 2P';
+  pointer-events: none;
+}
+
+.progress-bar-text::before {
+  content: attr(data-text);
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  color: black;
+  -webkit-text-stroke: 4px black;
+  z-index: -1;
 }
 
 .game-stats {
@@ -154,67 +183,42 @@
 
 /* Стили для режима списка */
 .game-card.list-mode {
-  display: grid;
-  grid-template-columns: 200px 1fr;
+  flex-direction: row;
   gap: 20px;
-  margin: 15px 0;
+  height: auto;
 }
 
-.game-card.list-mode img {
+.game-card.list-mode .game-image {
   width: 200px;
-  height: 100px;
-  object-fit: cover;
+  padding-top: 112.5px; /* Фиксированная высота для режима списка */
+  flex-shrink: 0;
 }
 
 .game-card.list-mode .game-info {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 20px;
-  align-items: center;
+  padding-top: 0;
 }
 
-.game-card.list-mode .progress-bar {
-  margin: 15px 0;
-}
-
-/* Режим сетки */
-.games-container:not(.list) .game-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.games-container:not(.list) .game-image {
-  width: 100%;
-  height: 215px;
-}
-
-/* Режим списка */
-.games-container.list .game-card {
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  margin-bottom: 20px;
-}
-
-.games-container.list .game-image {
-  height: 100%;
-  min-height: 112px;
+.game-card.list-mode h3 {
+  min-height: auto;
 }
 
 .game-image {
-  overflow: hidden;
-  background: var(--bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
+  width: 100%;
+  padding-top: 46.25%; /* Соотношение сторон 16:9 */
+  overflow: hidden;
+  background-color: var(--bg-primary);
 }
 
 .game-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-bottom: 2px solid var(--border-color);
-  transition: transform 0.5s ease;
+  border: var(--pixel-border) solid var(--text-secondary);
+  image-rendering: pixelated;
 }
 
 .game-card:hover .game-image img {
@@ -242,20 +246,20 @@
 
 .game-status {
   padding: 0.5rem 1rem;
-  border-radius: 20px;
   color: white;
   font-weight: 600;
-  font-size: 0.9rem;
-  text-transform: capitalize;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 0.7em;
+  text-transform: uppercase;
+  box-shadow: var(--pixel-shadow);
+  border: var(--pixel-border) solid rgba(255,255,255,0.2);
 }
 
 .game-info {
-  padding: 20px;
-  text-align: left;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   gap: 15px;
+  padding-top: 15px;
 }
 
 .game-info h2 {
@@ -268,33 +272,49 @@
   text-overflow: ellipsis;
 }
 
+.game-info h3 {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 #000;
+  min-height: 2.4em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .game-details {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin: 0;
 }
 
 .game-details p {
   margin: 0;
-  color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 0.7em;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .play-time {
-  color: var(--text-secondary) !important;
+  color: var(--text-secondary);
   font-weight: bold;
 }
 
 /* Адаптивный дизайн для режима списка */
 @media (max-width: 600px) {
-  .games-container.list .game-card {
-    grid-template-columns: 1fr;
+  .game-card.list-mode {
+    flex-direction: column;
   }
 
-  .games-container.list .game-image {
-    height: 215px;
+  .game-card.list-mode .game-image {
+    width: 100%;
+    padding-top: 46.25%;
   }
 } 
