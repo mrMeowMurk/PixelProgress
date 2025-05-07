@@ -2,14 +2,14 @@
   "name": "steam-tracker",
   "version": "1.0.0",
   "description": "Steam Game Progress Tracker",
-  "main": "server.js",
+  "main": "./server/server.js",
   "scripts": {
-    "start": "react-scripts start",
-    "server": "node server.js",
-    "dev": "nodemon server.js",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start:client": "cd client && react-scripts start",
+    "start:server":"node ./server/server.js",
+    "dev":   "nodemon ./server/server.js",
+    "build": "cd client && react-scripts build",
+    "test":  "cd client && react-scripts test",
+    "eject": "cd client &&react-scripts eject"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
