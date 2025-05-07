@@ -134,23 +134,78 @@ app.get('/api/recent/:steamId', async (req, res) => {
 app.get('/api/game/:appId', async (req, res) => {
   try {
     console.log(`Fetching game details for App ID: ${req.params.appId}`);
-    const response = await axios.get(
-      `https://store.steampowered.com/api/appdetails?appids=${req.params.appId}`,
-      {
-        headers: {
-          'Accept-Language': 'en-US,en;q=0.9',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-      }
-    );
     
-    const data = response.data[req.params.appId];
-    if (!data || !data.success) {
-      return res.status(404).json({ error: 'Game details not found.' });
+    // Пробуем несколько разных методов получения данных
+    const methods = [
+      // Метод 1: Прямой запрос к Steam Store API
+      async () => {
+        const response = await axios.get(
+          `https://store.steampowered.com/api/appdetails?appids=${req.params.appId}`,
+          {
+            headers: {
+              'Accept-Language': 'en-US,en;q=0.9',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            timeout: 5000
+          }
+        );
+        return response.data;
+      },
+      
+      // Метод 2: Использование Steam API для получения базовой информации
+      async () => {
+        const response = await axios.get(
+          `${STEAM_API_BASE_URL}/ISteamApps/GetAppList/v2/`,
+          { timeout: 5000 }
+        );
+        
+        const app = response.data.applist.apps.find(
+          app => app.appid.toString() === req.params.appId
+        );
+        
+        if (!app) {
+          throw new Error('App not found');
+        }
+        
+        return {
+          [req.params.appId]: {
+            success: true,
+            data: {
+              name: app.name,
+              steam_appid: app.appid,
+              genres: []  // Базовая информация без жанров
+            }
+          }
+        };
+      }
+    ];
+
+    // Пробуем каждый метод по очереди
+    let lastError = null;
+    for (const method of methods) {
+      try {
+        const data = await method();
+        if (data && data[req.params.appId] && data[req.params.appId].success) {
+          console.log('Game details response:', data[req.params.appId].data);
+          return res.json({ response: { gameDetails: data[req.params.appId].data } });
+        }
+      } catch (error) {
+        console.log('Method failed:', error.message);
+        lastError = error;
+      }
     }
 
-    console.log('Game details response:', data);
-    res.json({ response: { gameDetails: data.data } });
+    // Если все методы не сработали, возвращаем базовую информацию
+    return res.json({
+      response: {
+        gameDetails: {
+          steam_appid: req.params.appId,
+          name: 'Unknown Game',
+          genres: []
+        }
+      }
+    });
+
   } catch (error) {
     console.error('Error fetching game details:', error.message);
     handleSteamError(error, res);

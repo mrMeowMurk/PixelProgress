@@ -4,6 +4,7 @@ import { steamApi } from './services/steamApi';
 import GameCard from './GameCard';
 import StatsSection from './StatsSection';
 import ProfileSection from './ProfileSection';
+import WelcomeMessage from './components/WelcomeMessage';
 
 function App() {
   const [steamId, setSteamId] = useState('');
@@ -249,10 +250,11 @@ function App() {
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <button onClick={toggleDisplayMode} className="display-toggle">
-            {displayMode === 'grid' ? '📝' : '📱'}
+            {displayMode === 'grid' ? '📝' : '🎴'}
           </button>
         </div>
-        <h1>Steam Game Progress Tracker</h1>
+        <WelcomeMessage />
+        <h1>Steam Pixel Progress</h1>
         
         <form onSubmit={handleSteamIdSubmit} className="steam-id-form">
           <input
